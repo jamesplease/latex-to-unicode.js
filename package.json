@@ -1,0 +1,25 @@
+{
+  "name": "latex-to-unicode",
+  "version": "0.1.0",
+  "description": "Convert LaTeX strings to unicode.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jmeas/latex-to-unicode.js.git"
+  },
+  "keywords": [
+    "latex",
+    "unicode",
+    "strings",
+    "string",
+    "convert",
+    "conversion"
+  ],
+  "author": "Jmeas",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jmeas/latex-to-unicode.js/issues"
+  },
+  "homepage": "https://github.com/jmeas/latex-to-unicode.js"
+}
