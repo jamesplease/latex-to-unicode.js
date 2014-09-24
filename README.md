@@ -15,7 +15,7 @@ npm install latex-to-unicode
 ```js
 var latexToUnicode = require('latex-to-unicode');
 
-latexToUnicode('\frak{A} + \\alpha = 3')
+latexToUnicode('\\frak{A} + \\alpha = 3');
 // > 𝔄 + α = 3
 ```
 
