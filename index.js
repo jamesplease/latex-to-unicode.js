@@ -174,6 +174,24 @@ function convertSqrt(str) {
   return str;
 }
 
+// Convert binoms (\binom{a}{b})
+function convertBinom(str) {
+  var key = "\\binom";
+  while (str.indexOf(key) != -1) {
+    var idx = str.indexOf(key);
+    var nParse = parseBracket(str, idx + key.length, "{}");
+    var kParse = parseBracket(str, idx + key.length + nParse[1], "{}");
+    var n = convertBinom(nParse[0]);
+    var k = convertBinom(kParse[0]);
+    var binom = "(" + n + " ¦ " + k + ")";
+
+    var subLeft = str.substring(0, idx);
+    var subRight = str.substring(idx + key.length + nParse[1] + kParse[1]);
+    str = subLeft + binom + subRight;
+  }
+  return str;
+}
+
 // Replace str with unicode representations
 module.exports = function(str) {
 
@@ -182,6 +200,7 @@ module.exports = function(str) {
   str = applyAllModifiers(str);
   str = convertFrac(str);
   str = convertSqrt(str);
+  str = convertBinom(str);
 
   return str;
 };
