@@ -1,4 +1,5 @@
 // Load all of our data
+var aliases = require('./data/aliases');
 var subscripts = require('./data/subscripts');
 var superscripts = require('./data/superscripts');
 var symbols = require('./data/symbols');
@@ -8,6 +9,14 @@ var textcal = require('./data/textcal');
 var textfrak = require('./data/textfrak');
 var textit = require('./data/textit');
 var textmono = require('./data/textmono');
+
+// Replace some latex symbols with their alias equivalent
+function convertAliases(str) {
+    for (var i = 0; i < aliases.length; i++) {
+        str = str.replace(aliases[i][0], aliases[i][1], 'g');
+    }
+    return str;
+}
 
 // Replace each "\alpha", "\beta" and similar latex symbols with
 // their unicode representation.
@@ -22,8 +31,8 @@ function convertLatexSymbols(str) {
 // This will search for the ^ signs and replace the next
 // digit or (digits when {} is used) with its/their uppercase representation.
 function applyModifier(text, modifier, D) {
-  text = text.replace(modifier, "^", "g");
-  var newtext = "";
+  text = text.replace(modifier, '^', 'g');
+  var newtext = '';
   var mode_normal = 0;
   var mode_modified = 1;
   var mode_long = 2;
@@ -73,8 +82,8 @@ function applyAllModifiers(str) {
 // Replace str with unicode representations
 module.exports = function(str) {
 
+  str = convertAliases(str);
   str = convertLatexSymbols(str);
-
   str = applyAllModifiers(str);
 
   return str;
