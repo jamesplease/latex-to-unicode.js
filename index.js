@@ -10,10 +10,18 @@ var textfrak = require('./data/textfrak');
 var textit = require('./data/textit');
 var textmono = require('./data/textmono');
 
+// Replace all occurences of `search` by `replacement` within the string
+// Its use RegExp because `g` flag is not supported in Node
+// Moreover, it has to escape the reserved char of `search` 
+String.prototype.replaceAll = function(search, replacement) {
+  search = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return this.replace(new RegExp(search, 'g'), replacement);
+};
+
 // Replace some latex symbols with their alias equivalent
 function convertAliases(str) {
   for (var i = 0; i < aliases.length; i++) {
-    str = str.replace(aliases[i][0], aliases[i][1], 'g');
+    str = str.replaceAll(aliases[i][0], aliases[i][1]);
   }
   return str;
 }
@@ -22,7 +30,7 @@ function convertAliases(str) {
 // their unicode representation.
 function convertLatexSymbols(str) {
   for (var i = 0; i < symbols.length; i++) {
-    str = str.replace(symbols[i][0], symbols[i][1], 'g');
+    str = str.replaceAll(symbols[i][0], symbols[i][1]);
   }
   return str;
 }
@@ -31,7 +39,7 @@ function convertLatexSymbols(str) {
 // This will search for the ^ signs and replace the next
 // digit or (digits when {} is used) with its/their uppercase representation
 function applyModifier(text, modifier, D) {
-  text = text.replace(modifier, '^', 'g');
+  text = text.replaceAll(modifier, '^');
   var newtext = '';
   var mode_normal = 0;
   var mode_modified = 1;
