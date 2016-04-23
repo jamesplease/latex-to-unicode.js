@@ -119,6 +119,17 @@ function parseBracket(str, i, bracket) {
   return [out, i - start];
 }
 
+// Enclose mathematical expression `str` within parenthesis
+// to ensure the respect of calculations priorities
+function addParenthesis(str) {
+  if (str.length <= 1 ||
+     (str[0] == "(" && str.slice(-1) == ")") ||
+     /^[a-z0-9_]*$/i.test(str)) {
+    return str;
+  }
+  return '(' + str + ')';
+}
+
 // Convert fractions (\frac{a}{b})
 function convertFrac(str) {
   var key = '\\frac';
@@ -146,7 +157,11 @@ function convertFrac(str) {
     if (n == '5' && d == '8') frac = '⅝';
     if (n == '7' && d == '8') frac = '⅞';
 
-    if (frac === '') frac = '(' + n + ' / ' + d + ')';
+    if (frac === '') {
+      n = addParenthesis(n);
+      d = addParenthesis(d);
+      frac = '(' + n + ' / ' + d + ')';
+    }
   
     var subLeft = str.substring(0, idx);
     var subRight = str.substring(idx + key.length + num[1] + den[1]);
@@ -190,8 +205,8 @@ function convertBinom(str) {
     var idx = str.indexOf(key);
     var nParse = parseBracket(str, idx + key.length, '{}');
     var kParse = parseBracket(str, idx + key.length + nParse[1], '{}');
-    var n = convertBinom(nParse[0]);
-    var k = convertBinom(kParse[0]);
+    var n = addParenthesis(convertBinom(nParse[0]));
+    var k = addParenthesis(convertBinom(kParse[0]));
     var binom = '(' + n + ' ¦ ' + k + ')';
 
     var subLeft = str.substring(0, idx);
