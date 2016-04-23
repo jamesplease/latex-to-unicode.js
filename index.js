@@ -59,12 +59,8 @@ function convertLatexSymbols(str) {
     return str;
 }
 
-// Replace str with unicode representations
-module.exports = function(str) {
-
-  str = convertLatexSymbols(str)
-
-  // Apply all of the modifiers
+// Apply all of the modifiers
+function applyAllModifiers(str) {
   str = applyModifier(str, '^', superscripts);
   str = applyModifier(str, '_', subscripts);
   str = applyModifier(str, '\\bb', textbb);
@@ -73,6 +69,15 @@ module.exports = function(str) {
   str = applyModifier(str, '\\cal', textcal);
   str = applyModifier(str, '\\frak', textfrak);
   str = applyModifier(str, '\\mono', textmono);
+  return str;
+}
+
+// Replace str with unicode representations
+module.exports = function(str) {
+
+  str = convertLatexSymbols(str);
+
+  str = applyAllModifiers(str);
 
   return str;
 };
