@@ -9,54 +9,52 @@ var textfrak = require('./data/textfrak');
 var textit = require('./data/textit');
 var textmono = require('./data/textmono');
 
-// Attempts to find a replacement for a value in one
-// of our objects. If none exists, it returns the
-// original object
-var attemptReplace = function(obj, key) {
-  return obj[key] !== undefined ? obj[key] : key;
-};
-
-// Loops through our string, converting all of the symbols
-// that it finds. It also handles grouped symbols, as in:
-// \frak{ABC}
-function applyModifier(text, modifier, obj) {
-  text = text.replace(modifier, '^');
-  var newText = '', mode = 'normal', i, unit;
-
-  for (i = 0; i < text.length; i++) {
-    unit = text[i];
-    if (mode === 'normal' && unit === '^') {
-      mode = 'modified';
-      continue;
-    } else if (mode === 'modified' && unit === '{') {
-      mode = 'long';
-      continue;
-    } else if (mode === 'modified') {
-      newText += attemptReplace(obj, unit);
-      mode = 'normal';
-      continue;
-    } else if (mode === 'long' && unit === '}') {
-      mode = 'normal';
-      continue;
-    }
-
-    if (mode === 'normal') {
-      newText += unit;
-    } else {
-      newText += attemptReplace(obj, unit);
-    }
-  }
-
-  return newText;
-}
-
 // Replace each "\alpha", "\beta" and similar latex symbols with
 // their unicode representation.
 function convertLatexSymbols(str) {
-    for (var i = 0; i < symbols.length; i++) {
-        str = str.replace(symbols[i][0], symbols[i][1], 'g');
+  for (var i = 0; i < symbols.length; i++) {
+    str = str.replace(symbols[i][0], symbols[i][1], 'g');
+  }
+  return str;
+}
+
+// Example: modifier = "^", D = superscripts
+// This will search for the ^ signs and replace the next
+// digit or (digits when {} is used) with its/their uppercase representation.
+function applyModifier(text, modifier, D) {
+  text = text.replace(modifier, "^", "g");
+  var newtext = "";
+  var mode_normal = 0;
+  var mode_modified = 1;
+  var mode_long = 2;
+
+  var mode = mode_normal;
+  var ch;
+
+  for (var i = 0; i < text.length; i++) {
+    ch = text[i];
+    if (mode == mode_normal && ch == '^') {
+      mode = mode_modified;
+      continue;
+    } else if (mode == mode_modified && ch == '{') {
+      mode = mode_long;
+      continue;
+    } else if (mode == mode_modified) {
+      newtext += D[ch] !== undefined ? D[ch] : ch;
+      mode = mode_normal;
+      continue;
+    } else if (mode == mode_long && ch == '}') {
+      mode = mode_normal;
+      continue;
     }
-    return str;
+
+    if (mode == mode_normal) {
+      newtext += ch;
+    } else {
+      newtext += D[ch] !== undefined ? D[ch] : ch;
+    }
+  }
+  return newtext;
 }
 
 // Apply all of the modifiers
