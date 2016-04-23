@@ -50,14 +50,19 @@ function applyModifier(text, modifier, obj) {
   return newText;
 }
 
+// Replace each "\alpha", "\beta" and similar latex symbols with
+// their unicode representation.
+function convertLatexSymbols(str) {
+    for (var i = 0; i < symbols.length; i++) {
+        str = str.replace(symbols[i][0], symbols[i][1], 'g');
+    }
+    return str;
+}
+
 // Replace str with unicode representations
 module.exports = function(str) {
 
-  // Replace all of our symbols
-  Object.keys(symbols).forEach(function(key) {
-    var val = symbols[key];
-    str = str.replace(key, val);
-  });
+  str = convertLatexSymbols(str)
 
   // Apply all of the modifiers
   str = applyModifier(str, '^', superscripts);
