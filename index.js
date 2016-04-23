@@ -41,31 +41,31 @@ function convertLatexSymbols(str) {
 function applyModifier(text, modifier, D) {
   text = text.replaceAll(modifier, '^');
   var newtext = '';
-  var mode_normal = 0;
-  var mode_modified = 1;
-  var mode_long = 2;
+  var modeNormal = 0;
+  var modeModified = 1;
+  var modeLong = 2;
 
-  var mode = mode_normal;
+  var mode = modeNormal;
   var ch;
 
   for (var i = 0; i < text.length; i++) {
     ch = text[i];
-    if (mode == mode_normal && ch == '^') {
-      mode = mode_modified;
+    if (mode == modeNormal && ch == '^') {
+      mode = modeModified;
       continue;
-    } else if (mode == mode_modified && ch == '{') {
-      mode = mode_long;
+    } else if (mode == modeModified && ch == '{') {
+      mode = modeLong;
       continue;
-    } else if (mode == mode_modified) {
+    } else if (mode == modeModified) {
       newtext += D[ch] !== undefined ? D[ch] : ch;
-      mode = mode_normal;
+      mode = modeNormal;
       continue;
-    } else if (mode == mode_long && ch == '}') {
-      mode = mode_normal;
+    } else if (mode == modeLong && ch == '}') {
+      mode = modeNormal;
       continue;
     }
 
-    if (mode == mode_normal) {
+    if (mode == modeNormal) {
       newtext += ch;
     } else {
       newtext += D[ch] !== undefined ? D[ch] : ch;
@@ -110,7 +110,7 @@ function parseBracket(str, i, bracket) {
   return [out, i - start];
 }
 
-// Convert fraction using unicode or inline
+// Convert fractions (\frac{a}{b})
 function convertFrac(str) {
   var key = '\\frac';
   while (str.indexOf(key) != -1) {
@@ -146,6 +146,34 @@ function convertFrac(str) {
   return str;
 }
 
+// Convert square roots (\sqrt[a]{b})
+function convertSqrt(str) {
+  var key = "\\sqrt";
+  while (str.indexOf(key) != -1) {
+    var idx = str.indexOf(key);
+    var degree = parseBracket(str, idx + key.length, "[]");
+    var radicand = parseBracket(str, idx + key.length + degree[1], "{}");
+    var d = convertSqrt(degree[0]);
+    var r = convertSqrt(radicand[0]);
+    var sqrt = "";
+
+    if (degree[1] === 0 && radicand[1] === 0) sqrt = "√";
+    if (d == "2" || d === "") sqrt = "√(" + r + ")";
+    if (d == "3") sqrt = "∛(" + r + ")";
+    if (d == "4") sqrt = "∜(" + r + ")";
+
+    if (sqrt === "") {
+      var modified = applyModifier("^{" + d + "}", "^", superscripts);
+      sqrt = modified + "√(" + r + ")";
+    }
+
+    var subLeft = str.substring(0, idx);
+    var subRight = str.substring(idx + key.length + degree[1] + radicand[1]);
+    str = subLeft + sqrt + subRight;
+  }
+  return str;
+}
+
 // Replace str with unicode representations
 module.exports = function(str) {
 
@@ -153,6 +181,7 @@ module.exports = function(str) {
   str = convertLatexSymbols(str);
   str = applyAllModifiers(str);
   str = convertFrac(str);
+  str = convertSqrt(str);
 
   return str;
 };
