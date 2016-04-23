@@ -1,4 +1,5 @@
 // Load all of our data
+var accents = require('./data/accents');
 var aliases = require('./data/aliases');
 var subscripts = require('./data/subscripts');
 var superscripts = require('./data/superscripts');
@@ -14,9 +15,17 @@ var textmono = require('./data/textmono');
 // Its use RegExp because `g` flag is not supported in Node
 // Moreover, it has to escape the reserved char of `search` 
 String.prototype.replaceAll = function(search, replacement) {
-  search = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  search = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return this.replace(new RegExp(search, 'g'), replacement);
-};
+}
+
+// Insert `str` anywhere in the string
+String.prototype.insert = function (index, str) {
+  if (index <= 0) return str + this;
+  var stringLeft = this.substring(0, index);
+  var stringRight = this.substring(index, this.length);
+  return stringLeft + str + stringRight;
+}
 
 // Replace some latex symbols with their alias equivalent
 function convertAliases(str) {
@@ -148,23 +157,23 @@ function convertFrac(str) {
 
 // Convert square roots (\sqrt[a]{b})
 function convertSqrt(str) {
-  var key = "\\sqrt";
+  var key = '\\sqrt';
   while (str.indexOf(key) != -1) {
     var idx = str.indexOf(key);
-    var degree = parseBracket(str, idx + key.length, "[]");
-    var radicand = parseBracket(str, idx + key.length + degree[1], "{}");
+    var degree = parseBracket(str, idx + key.length, '[]');
+    var radicand = parseBracket(str, idx + key.length + degree[1], '{}');
     var d = convertSqrt(degree[0]);
     var r = convertSqrt(radicand[0]);
-    var sqrt = "";
+    var sqrt = '';
 
-    if (degree[1] === 0 && radicand[1] === 0) sqrt = "√";
-    if (d == "2" || d === "") sqrt = "√(" + r + ")";
-    if (d == "3") sqrt = "∛(" + r + ")";
-    if (d == "4") sqrt = "∜(" + r + ")";
+    if (degree[1] === 0 && radicand[1] === 0) sqrt = '√';
+    if (d == '2' || d === '') sqrt = '√(' + r + ')';
+    if (d == '3') sqrt = '∛(' + r + ')';
+    if (d == '4') sqrt = '∜(' + r + ')';
 
-    if (sqrt === "") {
-      var modified = applyModifier("^{" + d + "}", "^", superscripts);
-      sqrt = modified + "√(" + r + ")";
+    if (sqrt === '') {
+      var modified = applyModifier('^{' + d + '}', '^', superscripts);
+      sqrt = modified + '√(' + r + ')';
     }
 
     var subLeft = str.substring(0, idx);
@@ -176,18 +185,38 @@ function convertSqrt(str) {
 
 // Convert binoms (\binom{a}{b})
 function convertBinom(str) {
-  var key = "\\binom";
+  var key = '\\binom';
   while (str.indexOf(key) != -1) {
     var idx = str.indexOf(key);
-    var nParse = parseBracket(str, idx + key.length, "{}");
-    var kParse = parseBracket(str, idx + key.length + nParse[1], "{}");
+    var nParse = parseBracket(str, idx + key.length, '{}');
+    var kParse = parseBracket(str, idx + key.length + nParse[1], '{}');
     var n = convertBinom(nParse[0]);
     var k = convertBinom(kParse[0]);
-    var binom = "(" + n + " ¦ " + k + ")";
+    var binom = '(' + n + ' ¦ ' + k + ')';
 
     var subLeft = str.substring(0, idx);
     var subRight = str.substring(idx + key.length + nParse[1] + kParse[1]);
     str = subLeft + binom + subRight;
+  }
+  return str;
+}
+
+// Convert accents (\a{b})
+function convertAccents(str) {
+  for (var i = 0; i < accents.length; i++) {
+    var key = accents[i][0];
+    var value = accents[i][1];
+
+    while (str.indexOf(key) != -1) {
+      var idx = str.indexOf(key);
+      var parsed = parseBracket(str, idx + key.length, '{}');
+      var converted = convertAccents(parsed[0] !== '' ? parsed[0] : ' ');
+      converted = converted.insert(Math.round(converted.length / 2.0), value);
+      converted = JSON.parse('"' + converted + '"');
+      var subLeft = str.substring(0, idx);
+      var subRight = str.substring(idx + key.length + parsed[1]);
+      str = subLeft + converted + subRight;
+    }
   }
   return str;
 }
@@ -201,6 +230,7 @@ module.exports = function(str) {
   str = convertFrac(str);
   str = convertSqrt(str);
   str = convertBinom(str);
+  str = convertAccents(str);
 
   return str;
 };
