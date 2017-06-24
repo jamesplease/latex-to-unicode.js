@@ -56,7 +56,7 @@ module.exports = function(str) {
   // Replace all of our symbols
   Object.keys(symbols).forEach(function(key) {
     var val = symbols[key];
-    str = str.replace(key, val);
+    str = str.replace(new RegExp('\\' +key, 'g'), val);
   });
 
   // Apply all of the modifiers
